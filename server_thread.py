@@ -3,7 +3,6 @@ import socket
 import threading
 import logging
 from time import gmtime, strftime
-import sys
 
 class RequestCommand:
     @staticmethod
@@ -34,12 +33,12 @@ class ProcessTheClient(threading.Thread):
                     data = self.connection.recv(1024)
                     if data:
                         command = data.decode('utf-8').strip()
-                        logging.warning(f"Data diterima: {command} dari client {self.address}.")
-                        if command == 'TIME\r\n':
-                            logging.warning(f"Request berupa perintah TIME dari client {self.address}.")
+                        logging.info(f"Data diterima: {command} dari client {self.address}.")
+                        if command == 'TIME':
+                            logging.info(f"Request berupa perintah TIME dari client {self.address}.")
                             RequestCommand.time_cmd(self.connection)
-                        elif command == 'QUIT\r\n':
-                            logging.warning(f"Requst berupa perintah QUIT dari client {self.address}.")
+                        elif command == 'QUIT':
+                            logging.info(f"Request berupa perintah QUIT dari client {self.address}.")
                             RequestCommand.quit_cmd(self.connection)
                             break
                         else:
@@ -52,14 +51,16 @@ class ProcessTheClient(threading.Thread):
             self.connection.close()
 
 class Server(threading.Thread):
-    def __init__(self) :
+    def __init__(self, host='0.0.0.0', port=45000) :
         super().__init__()
+        self.host = host
+        self.port = port
         self.the_clients = []
         self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     def run(self):
-        self.my_socket.bind(('0.0.0.0', 45000))
+        self.my_socket.bind((self.host, self.port))
         self.my_socket.listen(1)
         logging.warning(f"Server listening on {self.host}:{self.port}")
 
